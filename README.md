@@ -14,10 +14,12 @@ It also exports a flattened .PNG file in the same location as the .PSD with the 
 is saved right next to it, overwriting the existing png.  This is how you know that the .png is always the current version.
 
 br_new_foreground_color.jsx
+![image](https://github.com/spiraloid/Spiraloid-Toolkit-for-Photoshop/assets/36362743/e53f3014-5ec0-49c2-af80-0e6dd9788572)
 
 creates a new solid color layer using the current foreground color and creates a mask layer.
 
 br_new_random_color.jsx
+![image](https://github.com/spiraloid/Spiraloid-Toolkit-for-Photoshop/assets/36362743/6c8086c6-d991-41fa-b979-4d683b9b3fd5)
 
 creates a new solid color layer using a random neon color and creates a mask layer.
 
