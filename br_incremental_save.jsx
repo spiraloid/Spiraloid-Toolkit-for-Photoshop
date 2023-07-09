@@ -46,9 +46,14 @@ if (app.documents.length !== 0) {
       docPath = doc.path + "/";
       // Use regex to match assetName and version
       var match = doc.name.match(/(.*)(_v\.)(\d+)/);
-      var assetName = match[1];
-      var versionNumber = match[3];
-      var currentVersion = parseInt(versionNumber);
+      if (match) {
+        var assetName = match[1];
+        var versionNumber = match[3];
+        var currentVersion = parseInt(versionNumber);
+      } else {
+        assetName = doc.name.split(".")[0];
+        var currentVersion = -1;
+      }
     } else {
       // Generate uniqueFilename for never saved files
       var moniker = monikerList[Math.floor(Math.random() * monikerList.length)];
