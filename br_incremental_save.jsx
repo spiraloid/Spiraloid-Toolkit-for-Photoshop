@@ -1,7 +1,9 @@
 if (app.documents.length !== 0) {
   var doc = app.activeDocument;
   var quicksavePath = "X:/Prod/Sketchbook/Photoshop/Quicksaves Psd/";
-  
+  var neverSaved = false;
+  var docPath = "";
+
   var monikerList = [
     'grokable', 'gnarly', 'clean', 'groggy', 'sleepy', 'deadly', 'dedicated', 'industrious', 'secret', 'miss', 'mister', 
     'completely', 'one', 'the', 'stinky', 'wicked', 'towering', 'friendly', 'quick', 'fast', 'rough', 'thin', 'fat', 'scrawny', 'slow',
@@ -31,84 +33,67 @@ if (app.documents.length !== 0) {
     'captain', 'duke', 'emperor', 'king', 'prince', 'sultan', 'pharaoh', 'tsar', 'kaiser', 'shogun', 'warlord', 'chieftain', 'overlord', 
     'lord', 'master', 'guru', 'sage', 'prophet', 'wizard', 'elder', 'patriarch', 'matriarch', 'priest', 'bishop', 'cardinal', 'pope'];
   
-  
-  var moniker = monikerList[Math.floor(Math.random() * monikerList.length)];
-  var adjective = adjectiveList[Math.floor(Math.random() * adjectiveList.length)];
-  var noun = nounList[Math.floor(Math.random() * nounList.length)];
-  var uniqueFilename = moniker + "." + adjective + "." + noun;
+  // Generate uniqueFilename at the beginning as you currently do
+var moniker = monikerList[Math.floor(Math.random() * monikerList.length)];
+var adjective = adjectiveList[Math.floor(Math.random() * adjectiveList.length)];
+var noun = nounList[Math.floor(Math.random() * nounList.length)];
+var uniqueFilename = moniker + "." + adjective + "." + noun;
 
-  var file = app.activeDocument;
-  var fileFolder = quicksavePath;
-  var extension = "." + file.name.split(".").pop();
-  var basename = file.name.substr(0, file.name.lastIndexOf('.'));
-  var currentVersion = "";
-  var assetName = "";
-  var newFilename = "";
-  var highestVersion = 0;
+// Get active document
+var file = app.activeDocument;
+var extension = "." + file.name.split(".").pop();
 
-  var scriptFile = new File($.fileName); // Get the current script file
-  var scriptFolder = scriptFile.parent; // Get the folder of the script file
+// If the file has never been saved
+if (!file.saved) {
+  neverSaved = true;
+  var assetName = uniqueFilename;
+  var highestVersion = 0;  // Start with version 0
+} else {
+  // If the file has been saved
+  docPath = file.path + "/";
 
-  // // Create log file
-  // var logFile = new File(scriptFolder + "/log.txt");
-  // logFile.open("w"); // "w" mode overwrites existing file or creates a new one
+  // Use regex to match assetName and version
+  var match = file.name.match(/(.*?)_v\.(\d+)/);
 
-  // // Log message function
-  // function logMessage(message) {
-  //   logFile.writeln(message);
-  // }
-
-  var folder = Folder(quicksavePath);
-  var fileNames = [];
-  if (folder.exists) {
-
-  if (!doc.saved) {
-    neverSaved = true;
-    var isUnique = false;
-    while (!isUnique) {
-      isUnique = true;
-      for (var i = 0; i < fileNames.length; i++) {
-        if (fileNames[i].indexOf(uniqueFilename) !== -1) {
-          isUnique = false;
-          moniker = monikerList[Math.floor(Math.random() * monikerList.length)];
-          adjective = adjectiveList[Math.floor(Math.random() * adjectiveList.length)];
-          noun = nounList[Math.floor(Math.random() * nounList.length)];
-          uniqueFilename = moniker + "." + adjective + "." + noun;
-          break;
-        }
-      }
-    }
-    assetName = uniqueFilename;
-    newFilename = quicksavePath + assetName + "_v." + zeroPad(0, 3) + ".psd";
+  if (match) {
+    // If the file name contains a version
+    var assetName = match[1];
+    var currentVersion = parseInt(match[2], 10);
+  } else {
+    // If the file name doesn't contain a version, assume it's the first version
+    var assetName = file.name.split(extension)[0];
+    // Set the currentVersion to -1 if it's the first version
+    var currentVersion = -1;  
   }
-  else {
-    var files = folder.getFiles();
-    for (var i = 0; i < files.length; i++) {
-      if (files[i] instanceof File) {
-        var fileName = files[i].name;
-        fileNames.push(fileName);
-        // logMessage("  - " + fileName);
-        if (fileName.indexOf(assetName + "_v.") > -1) {
-          var versionString = fileName.split('_v.')[1].split('.')[0];
-          var blendStringFragments = basename.split('_v.');
-          assetName = blendStringFragments[0];
-          // logMessage("Before parsing: " + versionString);
-          var versionNumber = parseInt(versionString, 10); // Parsing in base 10
-          // logMessage("After parsing: " + versionNumber);
-          highestVersion = versionNumber + 1;
-          currentVersion = versionString;
-          newFilename = quicksavePath + assetName + "_v." + zeroPad(highestVersion, 3) + extension;
+
+  // Get all files in the folder
+  var files = Folder(quicksavePath).getFiles();
+  var highestVersion = currentVersion;
+
+  // Loop through the files to find the highest version
+  for (var i = 0; i < files.length; i++) {
+    if (files[i] instanceof File) {
+      var fileMatch = files[i].name.match(/(.*?)_v\.(\d+)/);
+      // Check if the file begins with the assetName and contains a version
+      if (fileMatch && fileMatch[1] === assetName) {
+        var version = parseInt(fileMatch[2], 10);
+        if (version > highestVersion) {
+          highestVersion = version;
         }
       }
     }
   }
+
+  // Increment the highest version for the next save
+  highestVersion++;
+
 }
 
-  // Zero padding function
-  function zeroPad(num, places) {
-    var zero = places - num.toString().length + 1;
-    return Array(+(zero > 0 && zero)).join("0") + num;
-  }
+// Zero padding function
+function zeroPad(num, places) {
+  var zero = places - num.toString().length + 1;
+  return Array(+(zero > 0 && zero)).join("0") + num;
+}
 
   // // Log variables
   // logMessage("Variables:");
@@ -123,7 +108,15 @@ if (app.documents.length !== 0) {
 
 
   // Export as PNG
-  var pngExportPath = fileFolder + assetName + ".png";
+  if (neverSaved) { 
+    var pngExportPath = quicksavePath + assetName + ".png";
+    var newFilename = quicksavePath + assetName + "_v." + zeroPad(highestVersion, 3) + ".psd";
+  }
+  else {
+    var pngExportPath = docPath + assetName  + ".png";
+    var newFilename = docPath + assetName + "_v." + zeroPad(highestVersion, 3) + ".psd";
+  }
+  
   var pngFile = new File(pngExportPath);
   doc.exportDocument(pngFile, ExportType.SAVEFORWEB, undefined);
 
