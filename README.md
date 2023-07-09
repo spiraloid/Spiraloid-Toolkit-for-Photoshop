@@ -1,5 +1,5 @@
 # Spiraloid-Toolkit-for-Photoshop
- Scripts for photoshop to be used in actions.
+ Scripts for photoshop to be used in actions in photoshop 2023 on windows.  no support or warranty expressed or implied.  use at your own risk.  just sharing my setup.
 
 ![image](https://github.com/spiraloid/Spiraloid-Toolkit-for-Photoshop/assets/36362743/2247dffc-1956-4b16-a4ec-78e281f458de)
 
