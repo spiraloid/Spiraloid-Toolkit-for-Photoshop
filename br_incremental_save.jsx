@@ -311,9 +311,8 @@ if (app.documents.length !== 0) {
   //   var neverSaved = false;
   //   var docPath = "";
 
-  // Arrays ...
+  //   // ... List definitions ...
 
-  // Generate uniqueFilename at the beginning as you currently do
   var moniker = monikerList[Math.floor(Math.random() * monikerList.length)];
   var adjective = adjectiveList[Math.floor(Math.random() * adjectiveList.length)];
   var noun = nounList[Math.floor(Math.random() * nounList.length)];
@@ -322,20 +321,18 @@ if (app.documents.length !== 0) {
   var assetName;
   var currentVersion = 0;
 
-  // Wrap the path checking into a try-catch block
   try {
-    // Check if the document has a path and has "_v." in its name
-    var match = doc.name.match(/(.*)(_v\.)(\d+)(\..*)?/i); // Case-insensitive matching
+    // Improved regular expression to strictly match the versioning pattern
+    var match = doc.name.match(/(.*)(_v\.)(\d{3})(\.psd)$/i);
     if (doc.path && match) {
       assetName = match[1];
-      currentVersion = parseInt(match[3]);
+      currentVersion = parseInt(match[3], 10);
       docPath = doc.path + "/";
     } else if (doc.path) {
       assetName = doc.name.split(".")[0];
       docPath = doc.path + "/";
     }
   } catch (e) {
-    // If the document has never been saved, there won't be a path
     assetName = uniqueFilename;
     docPath = quicksavePath;
     neverSaved = true;
@@ -343,33 +340,24 @@ if (app.documents.length !== 0) {
 
   var highestVersion = currentVersion;
   if (neverSaved) {
-    highestVersion = -1; // For new files, start from version -1
+    highestVersion = -1;
   }
 
-  // Zero padding function
   function zeroPad(num, places) {
     var zero = places - num.toString().length + 1;
     return Array(+(zero > 0 && zero)).join("0") + num;
   }
 
-  // Prepare the new filename
   var newFilename = docPath + assetName + "_v." + zeroPad(highestVersion, 3) + ".psd";
   var pngExportPath = docPath + assetName + ".png";
 
-  // Save the file
-  var saveFile = new File(newFilename);
-  doc.saveAs(saveFile);
-
-  // Check if the file with the same name already exists in the directory
   var files = Folder(docPath).getFiles();
 
-  // Loop through the files to find the highest version
   for (var i = 0; i < files.length; i++) {
     if (files[i] instanceof File) {
-      var fileMatch = files[i].name.match(/(.*)(_v\.)(\d+)/i); // Case-insensitive matching
-      // Check if the file begins with the assetName and contains a version
+      var fileMatch = files[i].name.match(/(.*)(_v\.)(\d{3})(\.psd)$/i);
       if (fileMatch && fileMatch[1].toLowerCase() === assetName.toLowerCase()) {
-        var version = parseInt(fileMatch[3]);
+        var version = parseInt(fileMatch[3], 10);
         if (version > highestVersion) {
           highestVersion = version;
         }
@@ -377,17 +365,22 @@ if (app.documents.length !== 0) {
     }
   }
 
-  // Increment the highest version for the next save
   highestVersion++;
 
-  // Prepare the new filename again with incremented version
   newFilename = docPath + assetName + "_v." + zeroPad(highestVersion, 3) + ".psd";
 
   // Export as PNG
   var pngFile = new File(pngExportPath);
-  doc.exportDocument(pngFile, ExportType.SAVEFORWEB, undefined);
+  var exportOptions = new ExportOptionsSaveForWeb();
 
-  // Save the file again with incremented version
+  exportOptions.format = SaveDocumentType.PNG;
+  exportOptions.PNG8 = false; // Use PNG-24
+  exportOptions.transparency = true;
+  exportOptions.quality = 100;
+
+  doc.exportDocument(pngFile, ExportType.SAVEFORWEB, exportOptions);
+
+  // Save as PSD
   saveFile = new File(newFilename);
   doc.saveAs(saveFile);
 }
