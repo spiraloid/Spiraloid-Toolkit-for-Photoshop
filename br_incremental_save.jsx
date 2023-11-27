@@ -3,6 +3,9 @@ if (app.documents.length !== 0) {
   var quicksavePath = "X:/Prod/Sketchbook/Photoshop/Quicksaves Psd/";
   var neverSaved = false;
   var docPath = "";
+  var baseFolder;
+  var pngDocPath;
+  var pngExportFilePath;
 
   var monikerList = [
     "grokable",
@@ -348,29 +351,45 @@ if (app.documents.length !== 0) {
     return Array(+(zero > 0 && zero)).join("0") + num;
   }
 
-  var newFilename = docPath + assetName + "_v." + zeroPad(highestVersion, 3) + ".psd";
-  var pngExportPath = docPath + assetName + ".png";
+  if (!neverSaved) {
+    var pngDocPath = doc.fullName; // Get the full name of the document
+    if (pngDocPath instanceof File) {
+      baseFolder = pngDocPath.parent; // Get the parent folder
 
-  var files = Folder(docPath).getFiles();
-
-  for (var i = 0; i < files.length; i++) {
-    if (files[i] instanceof File) {
-      var fileMatch = files[i].name.match(/(.*)(_v\.)(\d{3})(\.psd)$/i);
-      if (fileMatch && fileMatch[1].toLowerCase() === assetName.toLowerCase()) {
-        var version = parseInt(fileMatch[3], 10);
-        if (version > highestVersion) {
-          highestVersion = version;
+      if (baseFolder instanceof Folder) {
+        var folderName = baseFolder.name; // Get the name of the folder
+        if (assetName === folderName) {
+          pngExportFilePath = baseFolder + "/image.png";
+        } else {
+          pngExportFilePath = pngDocPath + assetName + ".png";
         }
       }
     }
+
+    if (docPath instanceof File) {
+      var files = docPath.parent.getFiles();
+
+      for (var i = 0; i < files.length; i++) {
+        if (files[i] instanceof File) {
+          var fileMatch = files[i].name.match(/(.*)(_v\.)(\d{3})(\.psd)$/i);
+          if (fileMatch && fileMatch[1].toLowerCase() === assetName.toLowerCase()) {
+            var version = parseInt(fileMatch[3], 10);
+            if (version > highestVersion) {
+              highestVersion = version;
+            }
+          }
+        }
+      }
+    }
+    highestVersion++;
+    newFilename = baseFolder + "/" + assetName + "_v." + zeroPad(highestVersion, 3) + ".psd";
+  } else {
+    newFilename = quicksavePath + uniqueFilename + "_v.000.psd";
+    pngExportFilePath = quicksavePath + assetName + ".png";
   }
 
-  highestVersion++;
-
-  newFilename = docPath + assetName + "_v." + zeroPad(highestVersion, 3) + ".psd";
-
   // Export as PNG
-  var pngFile = new File(pngExportPath);
+  var pngFile = new File(pngExportFilePath);
   var exportOptions = new ExportOptionsSaveForWeb();
 
   exportOptions.format = SaveDocumentType.PNG;
