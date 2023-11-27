@@ -348,18 +348,37 @@ if (app.documents.length !== 0) {
     return Array(+(zero > 0 && zero)).join("0") + num;
   }
 
+  var baseFolder;
+  var doc = app.activeDocument; // Get the active document
+  var docPath = doc.fullName; // Get the full name of the document
+  var pngExportFilePath;
+
+  if (docPath instanceof File) {
+    baseFolder = docPath.parent; // Get the parent folder
+
+    if (baseFolder instanceof Folder) {
+      var folderName = baseFolder.name; // Get the name of the folder
+      if (assetName === folderName) {
+        pngExportFilePath = baseFolder + "/image.png";
+      } else {
+        pngExportFilePath = baseFolder + "/" + assetName + ".png";
+      }
+    }
+  }
+
   var newFilename = docPath + assetName + "_v." + zeroPad(highestVersion, 3) + ".psd";
-  var pngExportPath = docPath + assetName + ".png";
 
-  var files = Folder(docPath).getFiles();
+  if (docPath instanceof File) {
+    var files = docPath.parent.getFiles();
 
-  for (var i = 0; i < files.length; i++) {
-    if (files[i] instanceof File) {
-      var fileMatch = files[i].name.match(/(.*)(_v\.)(\d{3})(\.psd)$/i);
-      if (fileMatch && fileMatch[1].toLowerCase() === assetName.toLowerCase()) {
-        var version = parseInt(fileMatch[3], 10);
-        if (version > highestVersion) {
-          highestVersion = version;
+    for (var i = 0; i < files.length; i++) {
+      if (files[i] instanceof File) {
+        var fileMatch = files[i].name.match(/(.*)(_v\.)(\d{3})(\.psd)$/i);
+        if (fileMatch && fileMatch[1].toLowerCase() === assetName.toLowerCase()) {
+          var version = parseInt(fileMatch[3], 10);
+          if (version > highestVersion) {
+            highestVersion = version;
+          }
         }
       }
     }
@@ -367,10 +386,8 @@ if (app.documents.length !== 0) {
 
   highestVersion++;
 
-  newFilename = docPath + doc.name;
-
   // Export as PNG
-  var pngFile = new File(pngExportPath);
+  var pngFile = new File(pngExportFilePath);
   var exportOptions = new ExportOptionsSaveForWeb();
 
   exportOptions.format = SaveDocumentType.PNG;
@@ -381,6 +398,6 @@ if (app.documents.length !== 0) {
   doc.exportDocument(pngFile, ExportType.SAVEFORWEB, exportOptions);
 
   // Save as PSD
-  saveFile = new File(newFilename);
+  saveFile = new File(docPath);
   doc.saveAs(saveFile);
 }
