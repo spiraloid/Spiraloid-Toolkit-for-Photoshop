@@ -1,7 +1,7 @@
 # Spiraloid-Toolkit-for-Photoshop
  Scripts for photoshop to be used in actions in photoshop 2023 on windows.  no support or warranty expressed or implied.  use at your own risk.  just sharing my setup.
+ 
 ![image](https://github.com/spiraloid/Spiraloid-Toolkit-for-Photoshop/assets/36362743/abfd6485-cb9a-4059-85ec-fee57c0e73fb)
-
 
 br_incremental_save.jsx
 
